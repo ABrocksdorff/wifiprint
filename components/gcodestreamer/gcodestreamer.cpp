@@ -88,7 +88,7 @@ void GCodeStreamer::loop() {
     } else {
       this->client_connected_ = true;
       this->publish_state(true);
-      this->client_->write("GCodeStreamer v1.2 ready\n");
+      this->client_->write("GCodeStreamer v1.3 ready\n");
       this->high_freq_.start();  // full throttle
       this->last_recv_tcp_ = millis();
       ESP_LOGI(TAG, "New client connected from %s", this->client_->remoteIP().toString().c_str());
