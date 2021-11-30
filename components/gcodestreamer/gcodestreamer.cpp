@@ -19,6 +19,7 @@
 #include "gcodestreamer.h"
 #include "esphome/core/log.h"
 #include "esphome/core/util.h"
+#include <Esp.h>
 
 namespace esphome {
 namespace gcodestreamer {
@@ -115,9 +116,6 @@ auto GCodeStreamer::timed_read_() -> int {
     c = this->read();
     if (c >= 0) {
       return c;
-    }
-    if (_timeout == 0) {
-      return -1;
     }
     delay(0);
   } while (millis() - start_millis < 100UL);
@@ -296,13 +294,17 @@ void GCodeStreamer::read_buffer_() {
         if (str_startswith(line, ";")) {
           if (str_startswith(line, ";RELAYIN")) {
             this->relay_serial_in_flag_ = true;
+            this->client_->write("relay input on\n");
           } else if (str_startswith(line, ";RELAYOUT")) {
             this->relay_serial_out_flag_ = true;
+            this->client_->write("relay output on\n");
           } else if (str_startswith(line, ";DEBUG")) {
             this->loops_ = 0;
             this->set_interval(DEBUG, 5000, [this]() { this->debug_(); });
+            this->client_->write("debug on\n");
           } else if (str_startswith(line, ";QUIET")) {
             this->quiet_flag_ = true;
+            this->client_->write("quiet mode on\n");
           } else if (str_startswith(line, ";EXIT")) {
             if (this->client_connected_) {
               this->client_->write("Bye Bye\n");
@@ -310,14 +312,18 @@ void GCodeStreamer::read_buffer_() {
             }
           } else if (str_startswith(line, ";NORELAYIN")) {
             this->relay_serial_in_flag_ = false;
+            this->client_->write("relay input off\n");
           } else if (str_startswith(line, ";NORELAYOUT")) {
             this->relay_serial_out_flag_ = false;
+            this->client_->write("relay output off\n");
           } else if (str_startswith(line, ";NODEBUG")) {
             this->cancel_interval(DEBUG);
           } else if (str_startswith(line, ";NOQUIET")) {
             this->quiet_flag_ = false;
+            this->client_->write("debug off\n");
           } else if (str_startswith(line, ";NOEXIT")) {
             this->no_exit_flag_ = true;
+            this->client_->write("timeout off\n");
           }
 
           // comments
@@ -456,6 +462,3 @@ void GCodeStreamer::on_shutdown() {
     this->client_->close(true);
   }
 }
-
-}  // namespace gcodestreamer
-}  // namespace esphome
