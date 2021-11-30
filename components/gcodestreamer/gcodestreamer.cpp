@@ -462,3 +462,6 @@ void GCodeStreamer::on_shutdown() {
     this->client_->close(true);
   }
 }
+
+}  // namespace gcodestreamer
+}  // namespace esphome
